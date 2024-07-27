@@ -1,0 +1,5 @@
+"instance_arn": "arn:aws:ec2:us-east-1:471112952078:instance/i-095be34d586213531"
+"instance_id": "i-095be34d586213531"
+"instance_public_ip": "34.238.143.219"
+"vpc_security_group_ids":
+- "sg-096e9c38c97051a89"

@@ -1,0 +1,47 @@
+
+- name: Load instance variables and dynamically add host
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ./roles/vars/instance_vars.yml
+
+  tasks:
+    - name: Add remote host to inventory
+      add_host:
+        name: troy-project14
+        ansible_host: "{{ instance_public_ip }}"
+        ansible_user: ec2-user
+        ansible_ssh_private_key_file: ~/.ssh/troyKeyPair-east-us-1.pem
+
+- name: Configure the dynamically added host
+  hosts: troy-project14
+  tasks:
+    - name: Ensure the remote user is known
+      ansible.builtin.ping:
+
+    - name: Print the hostname
+      ansible.builtin.debug:
+        msg: "Hostname: {{ inventory_hostname }}"
+
+    - name: Print the current host's ansible_host
+      ansible.builtin.debug:
+        msg: "Host IP address: {{ hostvars[inventory_hostname]['ansible_host'] }}"
+
+    - name: Create the 'castle' directory
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/castle"
+        state: directory
+        mode: '0755'
+    
+    - name: Collect all variables for the current host into a string
+      set_fact:
+        host_vars_content: |
+          {% for key, value in hostvars[inventory_hostname].items() %}
+          {{ key }}: {{ value | to_nice_yaml }}
+          {% endfor %}
+
+    - name: Write all variables to a file on localhost
+      local_action:
+        module: copy
+        content: "{{ host_vars_content }}"
+        dest: "./host_vars_{{ inventory_hostname }}.txt"
